@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jarvis</title>
+<meta name="theme-color" content="#04070c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --bg:#04070c; --panel:rgba(8,30,48,.55); --line:rgba(79,216,255,.28);
+  --cyan:#4fd8ff; --cyan2:#a6efff; --amber:#ffb347; --red:#ff5c6c; --green:#59f0a8;
+  --text:#d8f4ff; --muted:#7397ab;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:radial-gradient(ellipse at 50% 25%,#0c2438 0%,var(--bg) 62%) fixed;
+  color:var(--text);font-family:Rajdhani,system-ui,sans-serif;font-size:17px;overflow-x:hidden;
+}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.10;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:44px 44px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;
+  padding:20px 24px 0;max-width:1400px;margin:0 auto}
+.brand{font-family:Orbitron;letter-spacing:.4em;color:var(--cyan);font-size:13px}
+.greet{font-family:Orbitron;font-weight:500;font-size:clamp(20px,3vw,30px);margin-top:6px}
+.sub{color:var(--muted);letter-spacing:.08em;margin-top:2px}
+.clock{text-align:right;font-family:Orbitron}
+.clock .t{font-size:clamp(26px,4vw,40px);color:var(--cyan2);text-shadow:0 0 18px rgba(79,216,255,.55)}
+.clock .d{color:var(--muted);letter-spacing:.18em;font-size:12px;text-transform:uppercase}
+
+main{display:grid;grid-template-columns:1fr minmax(260px,330px) 1fr;gap:20px;
+  padding:20px 24px 40px;max-width:1400px;margin:0 auto;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);padding:16px 18px 18px;position:relative;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);min-height:220px;
+  clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px))}
+.panel::after{content:"";position:absolute;top:0;left:0;width:60px;height:2px;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.ph h2{margin:0;font-family:Orbitron;font-size:13px;letter-spacing:.22em;color:var(--cyan);font-weight:500}
+.badge{font-family:Orbitron;font-size:11px;padding:2px 8px;border:1px solid var(--line);color:var(--cyan2)}
+
+ul.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.item{display:flex;gap:10px;align-items:stretch;background:rgba(79,216,255,.04);border:1px solid rgba(79,216,255,.10);padding:8px 10px}
+.item .bar{width:3px;flex:none;background:var(--cyan);box-shadow:0 0 8px currentColor}
+.item.cat-school .bar{background:var(--amber)}
+.item.cat-work .bar{background:var(--cyan)}
+.item.cat-personal .bar{background:var(--green)}
+.item.cat-cal .bar{background:#5b8fb0}
+.item .body{flex:1;min-width:0}
+.item .title{font-weight:600;line-height:1.25;word-wrap:break-word}
+.item .title a{color:inherit;text-decoration:none}
+.item .title a:hover{color:var(--cyan2)}
+.item .meta{color:var(--muted);font-size:14px;margin-top:2px}
+.item .snip{color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.when.over{color:var(--red);font-weight:600}
+.when.soon{color:var(--amber);font-weight:600}
+.when.near{color:var(--cyan2)}
+.tag{font-size:11px;font-family:Orbitron;letter-spacing:.1em;padding:1px 6px;margin-left:6px;border:1px solid var(--amber);color:var(--amber);vertical-align:2px}
+.acts{display:flex;gap:4px;align-items:center}
+.acts button{background:none;border:1px solid var(--line);width:28px;height:28px;color:var(--muted)}
+.acts button:hover{color:var(--cyan2);border-color:var(--cyan)}
+.empty{color:var(--muted);font-style:italic;padding:10px 2px}
+
+.tabs{display:flex;gap:4px}
+.tabs button{background:none;border:1px solid transparent;color:var(--muted);font-size:13px;padding:2px 8px;letter-spacing:.06em}
+.tabs button.on{border-color:var(--line);color:var(--cyan2)}
+
+form.add{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+form.add .full{grid-column:1/-1}
+input,select{background:rgba(0,0,0,.35);border:1px solid var(--line);padding:7px 9px;width:100%;min-width:0}
+input:focus,select:focus{outline:1px solid var(--cyan)}
+select option{background:#071420}
+.btn{background:rgba(79,216,255,.12);border:1px solid var(--cyan);color:var(--cyan2);padding:7px 14px;
+  font-family:Orbitron;font-size:12px;letter-spacing:.14em}
+.btn:hover{background:rgba(79,216,255,.25)}
+.btn.ghost{border-color:var(--line);background:none;color:var(--muted)}
+
+.center{display:flex;flex-direction:column;align-items:center;gap:18px}
+.core{position:relative;width:min(260px,70vw);aspect-ratio:1}
+.ring{position:absolute;border-radius:50%;inset:0;border:2px solid var(--cyan);opacity:.55}
+.r1{border-style:dashed;animation:spin 26s linear infinite}
+.r2{inset:12%;border-width:1px;border-color:var(--cyan2);border-left-color:transparent;border-right-color:transparent;animation:spin 9s linear infinite reverse}
+.r3{inset:24%;border-width:6px;border-color:rgba(79,216,255,.35);border-top-color:var(--cyan);animation:spin 4s linear infinite}
+.coreBtn{position:absolute;inset:33%;border-radius:50%;border:1px solid var(--cyan2);
+  background:radial-gradient(circle,#dffaff 0%,#4fd8ff 35%,rgba(10,60,90,.9) 72%);
+  box-shadow:0 0 40px rgba(79,216,255,.7),inset 0 0 20px rgba(255,255,255,.4);
+  font-family:Orbitron;font-size:12px;letter-spacing:.18em;color:#032234;font-weight:700;animation:pulse 3.2s ease-in-out infinite}
+.core.talking .coreBtn{animation:pulse .6s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{box-shadow:0 0 70px rgba(79,216,255,.95),inset 0 0 26px rgba(255,255,255,.55)}}
+@media (prefers-reduced-motion:reduce){.ring,.coreBtn{animation:none!important}}
+.brief{min-height:auto;text-align:left;font-size:17px;line-height:1.45}
+.status{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{font-size:13px;border:1px solid var(--line);padding:3px 10px;color:var(--muted)}
+.chip b{color:var(--cyan2);font-weight:600}
+.chip.warn b{color:var(--amber)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);transition:transform .3s;
+  background:#071c2c;border:1px solid var(--cyan);padding:10px 16px;max-width:calc(100% - 32px);z-index:20}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+dialog{background:#06131f;color:var(--text);border:1px solid var(--cyan);max-width:520px;width:calc(100% - 32px);padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.65)}
+dialog h3{font-family:Orbitron;letter-spacing:.2em;font-size:14px;color:var(--cyan);margin:0 0 14px}
+dialog label{display:block;margin:12px 0 4px;color:var(--muted);font-size:14px}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+dialog small{color:var(--muted)}
+
+@media (max-width:980px){
+  main{grid-template-columns:1fr;padding:16px}
+  header{padding:16px 16px 0}
+  .center{order:-1}
+  .clock{text-align:left}
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="brand">J · A · R · V · I · S</div>
+    <div class="greet" id="greet">Good evening.</div>
+    <div class="sub" id="sub">All systems online.</div>
+  </div>
+  <div class="clock"><div class="t" id="time">--:--</div><div class="d" id="date"></div></div>
+</header>
+
+<main>
+  <section class="panel" aria-labelledby="mailH">
+    <div class="ph"><h2 id="mailH">PRIORITY INBOX</h2><span class="badge" id="mailCount">0</span></div>
+    <ul class="list" id="mail"></ul>
+  </section>
+
+  <section class="center">
+    <div class="core" id="core">
+      <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+      <button class="coreBtn" id="briefBtn" title="Spoken briefing">BRIEF ME</button>
+    </div>
+    <div class="panel brief" id="brief">Standing by.</div>
+    <div class="status" id="status"></div>
+    <div class="controls">
+      <button class="btn" id="connectBtn">CONNECT GOOGLE</button>
+      <button class="btn ghost" id="alertBtn">ENABLE ALERTS</button>
+      <button class="btn ghost" id="setBtn">SETTINGS</button>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="dlH">
+    <div class="ph">
+      <h2 id="dlH">DEADLINES</h2>
+      <div class="tabs" id="tabs">
+        <button data-f="all" class="on">All</button><button data-f="school">School</button><button data-f="mine">Mine</button>
+      </div>
+    </div>
+    <ul class="list" id="deadlines"></ul>
+    <form class="add" id="addForm" autocomplete="off">
+      <input class="full" name="title" placeholder="Add a due date or reminder… (e.g. Form B concept map)" required>
+      <input name="due" type="datetime-local" required aria-label="Due date and time">
+      <select name="cat" aria-label="Category">
+        <option value="school">School</option><option value="work">Work</option><option value="personal">Personal</option>
+      </select>
+      <select name="remind" aria-label="Reminder">
+        <option value="1d">Remind 1 day before</option><option value="2d">Remind 2 days before</option>
+        <option value="1h">Remind 1 hour before</option><option value="at">Remind at due time</option>
+      </select>
+      <button class="btn" type="submit">ADD</button>
+    </form>
+  </section>
+</main>
+
+<div id="toast" role="status"></div>
+
+<dialog id="settings">
+  <h3>SETTINGS</h3>
+  <form method="dialog" id="setForm">
+    <label for="sName">What should Jarvis call you?</label>
+    <input id="sName" name="name">
+    <label for="sClient">Google OAuth Client ID</label>
+    <input id="sClient" name="clientId" placeholder="xxxxxxxx.apps.googleusercontent.com">
+    <small>Needed to read your Gmail and Google Calendar. Setup steps are in the README.</small>
+    <label for="sVoice">Speak reminders out loud</label>
+    <select id="sVoice" name="voice"><option value="on">On</option><option value="off">Off</option></select>
+    <div class="row">
+      <button class="btn ghost" value="cancel" formnovalidate>CANCEL</button>
+      <button class="btn" value="save">SAVE</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const CONFIG = {
+  name: 'Andrew',
+  // Emails from these domains get a SCHOOL tag
+  schoolDomains: ['goldenwest.edu', 'cccd.edu', 'csusb.edu', 'atitesting.com', 'instructure.com'],
+  // Calendar events / email subjects matching this count as school
+  schoolWords: /\b(exam|quiz|test|due|assignment|homework|ati|clinical|care ?plan|concept map|sbar|nclex|lecture|lab|g160\w*|gwc|csusb|canvas|skills|form [ab]|reflection)\b/i,
+  lookaheadDays: 14,
+  emailQuery: 'is:unread is:important newer_than:7d -category:promotions -category:social',
+  scopes: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.readonly'
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const decode = s => { const t = document.createElement('textarea'); t.innerHTML = s || ''; return t.value; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('jarvis.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('jarvis.' + k, JSON.stringify(v)); } catch (e) {} }
+};
+
+let settings = Object.assign({ name: CONFIG.name, clientId: '', voice: 'on' }, store.get('settings', {}));
+let items = store.get('items', []);
+const S = { token: null, tokenExp: 0, emails: [], events: [], live: false, everLive: false, filter: 'all', tokenClient: null, syncing: false };
+const DAY = 864e5, HOUR = 36e5;
+const OFFSETS = { at: 0, '1h': HOUR, '1d': DAY, '2d': 2 * DAY };
+
+function partOfDay() { const h = new Date().getHours(); return h < 5 ? 'Working late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; }
+const sod = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+function dayDiff(d) { return Math.round((sod(d) - sod(new Date())) / DAY); }
+function fmtTime(d) { return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+function rel(d, allDay) {
+  const dd = dayDiff(d), time = allDay ? 'All day' : fmtTime(d);
+  const past = allDay ? dd < 0 : d < new Date();
+  if (past) return { txt: dd === 0 ? `Overdue · ${time}` : `Overdue · ${-dd}d ago`, cls: 'over' };
+  if (dd === 0) return { txt: `Today · ${time}`, cls: 'soon' };
+  if (dd === 1) return { txt: `Tomorrow · ${time}`, cls: 'soon' };
+  if (dd < 7) return { txt: `${d.toLocaleDateString([], { weekday: 'long' })} · ${time}`, cls: dd <= 3 ? 'near' : '' };
+  return { txt: `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} · ${time}`, cls: '' };
+}
+function spokenWhen(d, allDay) {
+  const dd = dayDiff(d);
+  const day = dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : dd < 7 ? 'on ' + d.toLocaleDateString([], { weekday: 'long' }) : 'on ' + d.toLocaleDateString([], { month: 'long', day: 'numeric' });
+  return allDay ? day : `${day} at ${fmtTime(d)}`;
+}
+function ago(d) {
+  const m = Math.round((Date.now() - d) / 6e4);
+  if (m < 60) return `${Math.max(m, 1)}m ago`;
+  if (m < 1440) return `${Math.round(m / 60)}h ago`;
+  return `${Math.round(m / 1440)}d ago`;
+}
+
+function loadDemo() {
+  const now = Date.now();
+  S.emails = [
+    { from: 'Nursing Program (demo)', subject: 'Reminder: concept map due before clinical', snippet: 'Please upload your Form B before your next rotation…', when: new Date(now - 2 * HOUR), school: true },
+    { from: 'Shift Scheduling (demo)', subject: 'Open per diem shifts this weekend', snippet: 'Reply if you can pick up Saturday or Sunday…', when: new Date(now - 6 * HOUR) },
+    { from: 'BSN Advising (demo)', subject: 'Registration window opens soon', snippet: 'Concurrent enrollment students should register by…', when: new Date(now - 27 * HOUR), school: true }
+  ];
+  S.events = [
+    { title: 'ATI practice assessment (demo)', start: new Date(now + 28 * HOUR), cal: 'Demo', school: true },
+    { title: 'Clinical rotation (demo)', start: new Date(now + 52 * HOUR), cal: 'Demo', school: true }
+  ];
+}
+
+function initGoogle() {
+  if (!settings.clientId) return;
+  if (!(window.google && google.accounts && google.accounts.oauth2)) { setTimeout(initGoogle, 400); return; }
+  S.tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: settings.clientId,
+    scope: CONFIG.scopes,
+    callback: r => {
+      if (r.error) { toast('Google sign-in failed: ' + r.error); return; }
+      S.token = r.access_token;
+      S.tokenExp = Date.now() + (r.expires_in - 60) * 1000;
+      try { sessionStorage.setItem('jarvis.tok', JSON.stringify({ t: S.token, e: S.tokenExp })); } catch (e) {}
+      refresh();
+    }
+  });
+}
+function connect() {
+  if (!settings.clientId) { openSettings(); toast('Add your Google Client ID first — steps are in the README.'); return; }
+  if (!S.tokenClient) { initGoogle(); toast('Loading Google… tap Connect again in a second.'); return; }
+  S.tokenClient.requestAccessToken({ prompt: S.everLive ? '' : 'consent' });
+}
+async function gget(url) {
+  const r = await fetch(url, { headers: { Authorization: 'Bearer ' + S.token } });
+  if (r.status === 401) { S.token = null; throw new Error('expired'); }
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+async function loadEmails() {
+  const list = await gget('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=8&q=' + encodeURIComponent(CONFIG.emailQuery));
+  const msgs = await Promise.all((list.messages || []).map(m =>
+    gget(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`)));
+  S.emails = msgs.map(m => {
+    const h = n => ((m.payload.headers || []).find(x => x.name === n) || {}).value || '';
+    const raw = h('From'), subject = h('Subject') || '(no subject)';
+    const addr = ((raw.match(/<(.+)>/) || [, raw])[1] || '').toLowerCase();
+    return {
+      id: m.id, subject, snippet: decode(m.snippet),
+      from: raw.replace(/<.*>/, '').replace(/"/g, '').trim() || addr,
+      when: new Date(+m.internalDate),
+      school: CONFIG.schoolDomains.some(d => addr.endsWith(d)) || CONFIG.schoolWords.test(subject)
+    };
+  });
+}
+async function loadEvents() {
+  const cals = ((await gget('https://www.googleapis.com/calendar/v3/users/me/calendarList')).items || [])
+    .filter(c => c.selected !== false && !/#holiday|#contacts/.test(c.id));
+  const tMin = new Date().toISOString(), tMax = new Date(Date.now() + CONFIG.lookaheadDays * DAY).toISOString();
+  const res = await Promise.all(cals.map(c =>
+    gget(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(c.id)}/events?singleEvents=true&orderBy=startTime&maxResults=50&timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}`)
+      .then(r => ({ c, list: r.items || [] })).catch(() => ({ c, list: [] }))));
+  S.events = res.flatMap(({ c, list }) => list.filter(e => e.status !== 'cancelled' && e.start).map(e => {
+    const allDay = !!e.start.date;
+    const cal = c.summaryOverride || c.summary || '';
+    return {
+      title: e.summary || '(untitled)', allDay, cal, link: e.htmlLink,
+      start: allDay ? new Date(e.start.date + 'T00:00') : new Date(e.start.dateTime),
+      school: CONFIG.schoolWords.test(e.summary || '') || /canvas|school|gwc|csusb|nursing|class/i.test(cal)
+    };
+  }));
+}
+async function refresh() {
+  if (!S.token || Date.now() > S.tokenExp) {
+    S.token = null; S.live = false;
+    if (!S.everLive) loadDemo();
+    render(); return;
+  }
+  S.syncing = true; render();
+  try {
+    await Promise.all([loadEmails(), loadEvents()]);
+    S.live = S.everLive = true;
+  } catch (e) {
+    S.live = false;
+    toast(e.message === 'expired' ? 'Google session expired — tap Connect Google.' : 'Sync problem: ' + e.message);
+  }
+  S.syncing = false; render();
+}
+
+function deadlines(all) {
+  const manual = items.filter(i => !i.done).map(i => ({ ...i, start: new Date(i.due), manual: true, school: i.cat === 'school' }));
+  const ev = S.events.map(e => ({ ...e, cat: e.school ? 'school' : 'cal' }));
+  let list = [...manual, ...ev].sort((a, b) => a.start - b.start);
+  if (!all && S.filter === 'school') list = list.filter(x => x.school);
+  if (!all && S.filter === 'mine') list = list.filter(x => x.manual);
+  return list;
+}
+function addItem(f) {
+  items.push({ id: Date.now().toString(36), title: f.title.trim(), due: new Date(f.due).toISOString(), cat: f.cat, remind: f.remind, done: false, early: false, final: false });
+  store.set('items', items); render();
+  toast('Logged. I\'ll remind you.');
+}
+
+function checkReminders() {
+  const now = Date.now(); let changed = false;
+  for (const i of items) {
+    if (i.done) continue;
+    const due = new Date(i.due).getTime(), off = OFFSETS[i.remind] || 0;
+    if (!i.early && off > 0 && now >= due - off && now < due) {
+      i.early = changed = true;
+      alertUser(i.title, 'Due ' + spokenWhen(new Date(i.due)));
+    }
+    if (!i.final && now >= due && now < due + DAY) {
+      i.final = i.early = changed = true;
+      alertUser(i.title, 'Due now');
+    }
+  }
+  if (changed) { store.set('items', items); render(); }
+}
+function alertUser(title, body) {
+  toast(`⏰ ${title} — ${body}`);
+  try { if ('Notification' in window && Notification.permission === 'granted') new Notification('Jarvis: ' + title, { body }); } catch (e) {}
+  if (settings.voice === 'on') speak(`Reminder, ${settings.name}. ${title}. ${body}.`);
+}
+
+function pickVoice() {
+  const v = speechSynthesis.getVoices();
+  return v.find(x => /en-GB/i.test(x.lang) && /daniel|arthur|george|ryan|male/i.test(x.name))
+      || v.find(x => /en-GB/i.test(x.lang)) || v.find(x => /^en/i.test(x.lang)) || null;
+}
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  const v = pickVoice(); if (v) u.voice = v;
+  u.rate = 1.02; u.pitch = 0.9;
+  u.onstart = () => $('#core').classList.add('talking');
+  u.onend = u.onerror = () => $('#core').classList.remove('talking');
+  speechSynthesis.speak(u);
+}
+
+function briefing() {
+  const p = [`${partOfDay()}, ${settings.name}.`];
+  const n = S.emails.length, ns = S.emails.filter(e => e.school).length;
+  p.push(n ? `You have ${n} important unread email${n > 1 ? 's' : ''}${ns ? `, ${ns} from school` : ''}${S.emails[0] ? `. The latest is from ${S.emails[0].from}` : ''}.` : 'Nothing urgent in your inbox.');
+  const all = deadlines(true);
+  const over = all.filter(d => rel(d.start, d.allDay).cls === 'over');
+  const next = all.filter(d => rel(d.start, d.allDay).cls !== 'over').slice(0, 3);
+  if (over.length) p.push(`${over.length} item${over.length > 1 ? 's are' : ' is'} overdue, starting with ${over[0].title}.`);
+  if (next.length) p.push('Coming up: ' + next.map(d => `${d.title}, ${spokenWhen(d.start, d.allDay)}`).join('; ') + '.');
+  else p.push('No deadlines in the next two weeks.');
+  if (!S.live && !S.everLive) p.push('This is demo data until you connect Google.');
+  return p.join(' ');
+}
+
+function render() {
+  $('#greet').textContent = `${partOfDay()}, ${settings.name}.`;
+  const all = deadlines(true);
+  const dueSoon = all.filter(d => ['over', 'soon'].includes(rel(d.start, d.allDay).cls)).length;
+  $('#sub').textContent = dueSoon ? `${dueSoon} item${dueSoon > 1 ? 's' : ''} need${dueSoon > 1 ? '' : 's'} your attention.` : 'All systems online.';
+
+  // mail
+  $('#mailCount').textContent = S.emails.length;
+  $('#mail').innerHTML = S.emails.length ? S.emails.map(e => `
+    <li class="item ${e.school ? 'cat-school' : ''}"><div class="bar"></div><div class="body">
+      <div class="title">${e.id ? `<a href="https://mail.google.com/mail/u/0/#all/${esc(e.id)}" target="_blank" rel="noopener">${esc(e.subject)}</a>` : esc(e.subject)}${e.school ? '<span class="tag">SCHOOL</span>' : ''}</div>
+      <div class="meta">${esc(e.from)} · ${ago(e.when)}</div>
+      ${e.snippet ? `<div class="snip">${esc(e.snippet)}</div>` : ''}
+    </div></li>`).join('') : '<li class="empty">Inbox clear. Nothing flagged important.</li>';
+
+  // deadlines
+  const list = deadlines(false);
+  $('#deadlines').innerHTML = list.length ? list.map(d => {
+    const r = rel(d.start, d.allDay);
+    const label = d.manual ? ({ school: 'School', work: 'Work', personal: 'Personal' }[d.cat]) : esc(d.cal || 'Calendar');
+    const title = d.link ? `<a href="${esc(d.link)}" target="_blank" rel="noopener">${esc(d.title)}</a>` : esc(d.title);
+    return `<li class="item cat-${esc(d.cat)}"><div class="bar"></div><div class="body">
+      <div class="title">${title}</div>
+      <div class="meta"><span class="when ${r.cls}">${r.txt}</span> · ${label}</div></div>
+      ${d.manual ? `<div class="acts"><button data-done="${d.id}" title="Mark done" aria-label="Mark done">✓</button><button data-del="${d.id}" title="Delete" aria-label="Delete">✕</button></div>` : ''}
+    </li>`;
+  }).join('') : '<li class="empty">Nothing here. Add a due date below.</li>';
+
+  // status
+  const g = S.syncing ? 'Syncing…' : S.live ? 'Connected' : S.everLive ? 'Reconnect' : 'Demo mode';
+  const n = !('Notification' in window) ? 'Unsupported' : Notification.permission === 'granted' ? 'On' : 'Off';
+  $('#status').innerHTML = `<span class="chip ${S.live ? '' : 'warn'}">Google <b>${g}</b></span><span class="chip ${n === 'On' ? '' : 'warn'}">Alerts <b>${n}</b></span><span class="chip">Voice <b>${settings.voice === 'on' ? 'On' : 'Off'}</b></span>`;
+  $('#connectBtn').textContent = S.live ? 'REFRESH' : 'CONNECT GOOGLE';
+  $('#alertBtn').style.display = n === 'Off' ? '' : 'none';
+  $('#brief').textContent = briefing();
+}
+
+function tick() {
+  const d = new Date();
+  $('#time').textContent = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  $('#date').textContent = d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+}
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 4500); }
+
+function openSettings() {
+  $('#sName').value = settings.name; $('#sClient').value = settings.clientId; $('#sVoice').value = settings.voice;
+  $('#settings').showModal();
+}
+$('#settings').addEventListener('close', () => {
+  if ($('#settings').returnValue !== 'save') return;
+  const old = settings.clientId;
+  settings = { name: $('#sName').value.trim() || CONFIG.name, clientId: $('#sClient').value.trim(), voice: $('#sVoice').value };
+  store.set('settings', settings);
+  if (settings.clientId !== old) { S.tokenClient = null; initGoogle(); }
+  render();
+});
+
+$('#briefBtn').onclick = () => speak(briefing());
+$('#connectBtn').onclick = () => S.live ? refresh() : connect();
+$('#setBtn').onclick = openSettings;
+$('#alertBtn').onclick = async () => { try { await Notification.requestPermission(); } catch (e) {} render(); };
+$('#tabs').onclick = e => {
+  const f = e.target.dataset.f; if (!f) return;
+  S.filter = f; document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.f === f)); render();
+};
+$('#deadlines').onclick = e => {
+  const done = e.target.dataset.done, del = e.target.dataset.del;
+  if (done) { const i = items.find(x => x.id === done); if (i) i.done = true; toast('Marked complete. Nicely done.'); }
+  if (del) items = items.filter(x => x.id !== del);
+  if (done || del) { store.set('items', items); render(); }
+};
+$('#addForm').onsubmit = e => { e.preventDefault(); addItem(Object.fromEntries(new FormData(e.target))); e.target.reset(); };
+
+try { const t = JSON.parse(sessionStorage.getItem('jarvis.tok') || 'null'); if (t && t.e > Date.now()) { S.token = t.t; S.tokenExp = t.e; } } catch (e) {}
+if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => {};
+tick(); setInterval(tick, 1000);
+initGoogle(); refresh();
+setInterval(refresh, 10 * 60 * 1000);
+checkReminders(); setInterval(checkReminders, 30 * 1000);
+setInterval(render, 60 * 1000);
+</script>
+</body>
+</html>
